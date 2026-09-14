@@ -1,0 +1,14 @@
+---
+description: Load ai/ briefing; standards; public-repo safety for Planning site
+alwaysApply: true
+---
+
+# Planning site — agent context
+
+Before exploring the whole codebase, read the briefing in [`ai/`](ai/README.md):
+
+1. [`ai/PROJECT.md`](ai/PROJECT.md) — stack, layout, commands, design
+2. [`ai/STANDARDS.md`](ai/STANDARDS.md) — best practices, verify facts, double-check builds
+3. [`ai/PUBLIC_REPO.md`](ai/PUBLIC_REPO.md) — this repo is **public**; warn before secrets or private personal data
+
+Follow those docs on every task. Prefer them over re-deriving project context from scratch.

@@ -50,10 +50,3 @@ export function loadTodos(): TodoItem[] {
 export function saveTodos(todos: TodoItem[]): void {
   write('todos', todos)
 }
-
-export function createId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID()
-  }
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`
-}

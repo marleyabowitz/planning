@@ -6,12 +6,13 @@ import { initTodo } from './todo'
 const app = document.querySelector<HTMLDivElement>('#app')
 
 if (app) {
+  document.body.classList.add('page-home')
+
   app.innerHTML = `
     <div class="site-wrap">
       ${navMarkup('home')}
       <main>
-        <section class="page-section" aria-labelledby="week-heading">
-          <h2 id="week-heading" class="page-section__heading">This week</h2>
+        <section class="page-section" aria-label="Calendar">
           <div id="calendar-root"></div>
         </section>
         <section class="page-section" aria-labelledby="todo-heading">

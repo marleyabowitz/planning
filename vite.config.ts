@@ -9,7 +9,13 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(root, 'index.html'),
-        notes: resolve(root, 'notes.html'),
+        algos: resolve(root, 'algos.html'),
+        probability: resolve(root, 'probability.html'),
+        ai: resolve(root, 'ai.html'),
+        languages: resolve(root, 'languages.html'),
+        bc1014: resolve(root, 'bc1014.html'),
+        cantor: resolve(root, 'cantor.html'),
+        career: resolve(root, 'career.html'),
       },
     },
   },
