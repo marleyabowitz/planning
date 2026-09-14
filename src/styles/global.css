@@ -261,6 +261,12 @@ input:focus-visible,
   border-bottom: 1px solid var(--line);
 }
 
+.day-column__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
 .day-column__name {
   margin: 0;
   font-size: 0.95rem;
@@ -285,30 +291,22 @@ input:focus-visible,
 }
 
 .day-event {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-xs);
-  padding: 0.35rem 0.55rem;
-  border: 1px solid transparent;
-  border-radius: 999px;
-}
-
-.day-event:last-child {
-  border-bottom: none;
+  display: block;
+  padding: 0.4rem 0.65rem;
+  border: none;
+  border-radius: 0.45rem;
 }
 
 .day-event--clickable {
   cursor: pointer;
 }
 
-.day-event--clickable:hover .day-event__text {
-  text-decoration: underline;
+.day-event--clickable:hover {
+  filter: brightness(1.06);
 }
 
 .day-event__text {
   margin: 0;
-  flex: 1;
   word-break: break-word;
 }
 
@@ -452,12 +450,17 @@ input:focus-visible,
 
 .month-event {
   display: block;
-  padding: 0.3rem 0.45rem;
-  border-radius: 999px;
+  padding: 0.3rem 0.5rem;
+  border: none;
+  border-radius: 0.4rem;
 }
 
 .month-event--clickable {
   cursor: pointer;
+}
+
+.month-event--clickable:hover {
+  filter: brightness(1.06);
 }
 
 .month-event__text {
@@ -503,7 +506,6 @@ input:focus-visible,
   white-space: normal;
 }
 
-.day-event__remove,
 .todo-item__remove {
   border: none;
   min-height: auto;
@@ -512,8 +514,95 @@ input:focus-visible,
   line-height: 1;
 }
 
-.day-event__remove:hover,
 .todo-item__remove:hover {
+  color: var(--ink);
+  background: transparent;
+}
+
+.day-add {
+  border: none;
+  min-height: auto;
+  min-width: auto;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  font-size: 0.95rem;
+  color: var(--muted);
+  background: transparent;
+}
+
+.day-add:hover {
+  color: var(--ink);
+  background: transparent;
+}
+
+.event-form {
+  width: min(100% - 2rem, 22rem);
+  padding: var(--space-md);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  border-radius: 0.75rem;
+}
+
+.event-form::backdrop {
+  background: rgb(0 0 0 / 0.25);
+}
+
+.event-form__title {
+  margin: 0 0 var(--space-md);
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+.event-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.event-form__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.event-form__input {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 0.35rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.event-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.event-form__actions button {
+  min-height: auto;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.event-form__spacer {
+  flex: 1;
+}
+
+.event-form__danger {
+  color: var(--muted);
+  border-color: transparent;
+}
+
+.event-form__danger:hover {
   color: var(--ink);
   background: transparent;
 }
@@ -673,19 +762,27 @@ body.page-home .day-column.is-today {
   background: #faf9f7;
 }
 
-body.page-home .day-column__header,
-body.page-home .day-event {
+body.page-home .day-column__header {
   border-bottom-color: #e5e0d8;
 }
 
 body.page-home .day-column__date,
-body.page-home .day-event__remove,
-body.page-home .month-day__date {
+body.page-home .month-day__date,
+body.page-home .day-add {
   color: var(--home-brown-muted);
 }
 
-body.page-home .day-event__remove:hover {
+body.page-home .day-add {
+  border: none;
+  background: transparent;
+  min-height: auto;
+  padding: 0;
+  color: var(--home-brown-muted);
+}
+
+body.page-home .day-add:hover {
   color: var(--home-brown);
+  background: transparent;
 }
 
 body.page-home .day-column__name,
@@ -710,56 +807,73 @@ body.page-home .calendar-view-toggle {
   min-height: auto;
   border-radius: 0;
   background: transparent;
+  color: var(--home-cream);
 }
 
 body.page-home .calendar-view-toggle:hover {
   background: transparent;
 }
 
-body.page-home .calendar-view-toggle {
-  color: var(--home-cream);
-}
-
-body.page-home .day-event {
-  border-color: var(--home-brown);
-  align-items: center;
-  padding: 0.45rem 0.75rem;
-}
-
-body.page-home .day-event__text {
-  color: var(--home-cream);
-  font-size: 0.83rem;
-  line-height: 1.2;
-}
-
+body.page-home .day-event,
 body.page-home .month-event {
-  border: 1px solid var(--home-brown);
-  padding: 0.45rem 0.7rem;
+  border: none;
+  padding: 0.4rem 0.65rem;
 }
 
+body.page-home .day-event__text,
 body.page-home .month-event__text {
   color: var(--home-cream);
   font-size: 0.83rem;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
-body.page-home .event-detail {
+body.page-home .day-event--birthdays .day-event__text,
+body.page-home .day-event--other .day-event__text,
+body.page-home .month-event--birthdays .month-event__text,
+body.page-home .month-event--other .month-event__text {
+  color: var(--home-brown);
+}
+
+body.page-home .event-detail,
+body.page-home .event-form {
   border-color: #ddd8d0;
   border-radius: 0.9rem;
   background: #f7f5f2;
   color: var(--home-brown);
 }
 
-body.page-home .event-detail::backdrop {
+body.page-home .event-detail::backdrop,
+body.page-home .event-form::backdrop {
   background: rgb(22 20 19 / 0.45);
 }
 
-body.page-home .event-detail__close {
+body.page-home .event-detail__close,
+body.page-home .event-form__danger {
   color: var(--home-brown-muted);
 }
 
-body.page-home .event-detail__close:hover {
+body.page-home .event-detail__close:hover,
+body.page-home .event-form__danger:hover {
   color: var(--home-brown);
+}
+
+body.page-home .event-form__label {
+  color: var(--home-brown-muted);
+}
+
+body.page-home .event-form__input {
+  border-color: #ddd8d0;
+  background: #fff;
+  color: var(--home-brown);
+}
+
+body.page-home .event-form__actions button {
+  color: var(--home-brown);
+  border-color: #ddd8d0;
+}
+
+body.page-home .event-form__actions button:hover {
+  background: #efeae4;
 }
 
 body.page-home .month-day {
@@ -769,6 +883,13 @@ body.page-home .month-day {
 
 body.page-home .month-day.is-today {
   background: #faf9f7;
+}
+
+body.page-home .month-day__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
 }
 
 @media (min-width: 720px) {

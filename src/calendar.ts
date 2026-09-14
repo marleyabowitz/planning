@@ -326,16 +326,42 @@ function detailMarkup(detail: EventDetail): string {
   return rows.length > 0 ? rows.join('') : `<p>No details.</p>`
 }
 
+function eventBubbleMarkup(event: DisplayEvent, kind: 'day' | 'month'): string {
+  const base = kind === 'day' ? 'day-event' : 'month-event'
+  const textTag = kind === 'day' ? 'p' : 'span'
+  const textClass = `${base}__text`
+  const action = event.removable
+    ? ` data-edit-event="${event.id}"`
+    : event.detail
+      ? ` data-open-event="${event.id}"`
+      : ''
+  const clickable = action ? ` ${base}--clickable` : ''
+  return `
+    <li${action} class="${base}${clickable} ${base}--${event.category}" data-event-id="${event.id}">
+      <${textTag} class="${textClass}">${eventTitleMarkup(event.title)}</${textTag}>
+    </li>`
+}
+
+function newEventId(): string {
+  return `event-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
 export function initCalendar(container: HTMLElement): void {
   let weekStart = startOfWeek(new Date())
   let monthStart = startOfMonth(new Date())
   let view: CalendarView = 'week'
   let events = loadEvents()
+  let editingId: string | null = null
 
   const persist = () => saveEvents(events)
 
   const closeDetail = () => {
     container.querySelector<HTMLDialogElement>('[data-event-detail]')?.close()
+  }
+
+  const closeForm = () => {
+    editingId = null
+    container.querySelector<HTMLDialogElement>('[data-event-form]')?.close()
   }
 
   const openDetail = (event: DisplayEvent) => {
@@ -347,6 +373,23 @@ export function initCalendar(container: HTMLElement): void {
     title.textContent = event.title
     body.innerHTML = detailMarkup(event.detail)
     dialog.showModal()
+  }
+
+  const openForm = (opts: { date: string; id?: string; title?: string }) => {
+    const dialog = container.querySelector<HTMLDialogElement>('[data-event-form]')
+    const formTitle = container.querySelector<HTMLElement>('[data-event-form-title]')
+    const dateInput = container.querySelector<HTMLInputElement>('[data-event-form-date]')
+    const titleInput = container.querySelector<HTMLInputElement>('[data-event-form-title-input]')
+    const deleteBtn = container.querySelector<HTMLButtonElement>('[data-event-form-delete]')
+    if (!dialog || !formTitle || !dateInput || !titleInput || !deleteBtn) return
+
+    editingId = opts.id ?? null
+    formTitle.textContent = editingId ? 'Edit event' : 'Add event'
+    dateInput.value = opts.date
+    titleInput.value = opts.title ?? ''
+    deleteBtn.hidden = !editingId
+    dialog.showModal()
+    titleInput.focus()
   }
 
   const render = () => {
@@ -408,34 +451,13 @@ export function initCalendar(container: HTMLElement): void {
               <article class="day-column${todayClass}" role="listitem" data-date="${key}">
                 <header class="day-column__header">
                   <h3 class="day-column__name">${DAY_NAMES[index]}</h3>
-                  <p class="day-column__date">${day.getDate()}</p>
+                  <div class="day-column__meta">
+                    <p class="day-column__date">${day.getDate()}</p>
+                    <button type="button" class="day-add" data-add-event="${key}" aria-label="Add event">+</button>
+                  </div>
                 </header>
                 <ul class="day-column__events">
-                  ${
-                    dayEvents.length === 0
-                      ? ''
-                      : dayEvents
-                          .map((event) => {
-                            const cat = `day-event--${event.category}`
-                            const clickable = event.detail
-                              ? ` data-open-event="${event.id}" class="day-event day-event--clickable ${cat}"`
-                              : ` class="day-event ${cat}"`
-                            const remove = event.removable
-                              ? `<button
-                          type="button"
-                          class="day-event__remove"
-                          data-remove-event
-                          aria-label="Remove event"
-                        >×</button>`
-                              : ''
-                            return `
-                      <li${clickable} data-event-id="${event.id}">
-                        <p class="day-event__text">${eventTitleMarkup(event.title)}</p>
-                        ${remove}
-                      </li>`
-                          })
-                          .join('')
-                  }
+                  ${dayEvents.map((event) => eventBubbleMarkup(event, 'day')).join('')}
                 </ul>
               </article>
             `
@@ -454,20 +476,10 @@ export function initCalendar(container: HTMLElement): void {
               <article class="month-day${todayClass}${outsideMonthClass}" data-date="${key}">
                 <header class="month-day__header">
                   <p class="month-day__date">${day.getDate()}</p>
+                  <button type="button" class="day-add" data-add-event="${key}" aria-label="Add event">+</button>
                 </header>
                 <ul class="month-day__events">
-                  ${dayEvents
-                    .map((event) => {
-                      const clickable = event.detail
-                        ? ` data-open-event="${event.id}" class="month-event month-event--clickable month-event--${event.category}"`
-                        : ` class="month-event month-event--${event.category}"`
-                      return `
-                        <li${clickable} data-event-id="${event.id}">
-                          <span class="month-event__text">${eventTitleMarkup(event.title)}</span>
-                        </li>
-                      `
-                    })
-                    .join('')}
+                  ${dayEvents.map((event) => eventBubbleMarkup(event, 'month')).join('')}
                 </ul>
               </article>
             `
@@ -481,6 +493,34 @@ export function initCalendar(container: HTMLElement): void {
           <button type="submit" class="event-detail__close" aria-label="Close">×</button>
         </form>
         <div class="event-detail__body" data-event-detail-body></div>
+      </dialog>
+      <dialog class="event-form" data-event-form>
+        <form data-event-form-fields>
+          <h3 class="event-form__title" data-event-form-title>Add event</h3>
+          <div class="event-form__fields">
+            <label class="event-form__label">
+              Date
+              <input class="event-form__input" type="date" required data-event-form-date />
+            </label>
+            <label class="event-form__label">
+              Title
+              <input
+                class="event-form__input"
+                type="text"
+                required
+                maxlength="120"
+                placeholder="e.g. Other — errands"
+                data-event-form-title-input
+              />
+            </label>
+          </div>
+          <div class="event-form__actions">
+            <button type="submit">Save</button>
+            <button type="button" data-event-form-cancel>Cancel</button>
+            <span class="event-form__spacer"></span>
+            <button type="button" class="event-form__danger" data-event-form-delete hidden>Delete</button>
+          </div>
+        </form>
       </dialog>
     `
 
@@ -521,15 +561,20 @@ export function initCalendar(container: HTMLElement): void {
       render()
     })
 
-    container.querySelectorAll<HTMLElement>('[data-remove-event]').forEach((button) => {
-      button.addEventListener('click', (clickEvent) => {
-        clickEvent.stopPropagation()
-        const row = button.closest<HTMLElement>('[data-event-id]')
-        const id = row?.dataset.eventId
-        if (!id) return
-        events = events.filter((event) => event.id !== id)
-        persist()
-        render()
+    container.querySelectorAll<HTMLElement>('[data-add-event]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const date = button.dataset.addEvent
+        if (!date) return
+        openForm({ date })
+      })
+    })
+
+    container.querySelectorAll<HTMLElement>('[data-edit-event]').forEach((row) => {
+      row.addEventListener('click', () => {
+        const id = row.dataset.editEvent
+        const event = events.find((item) => item.id === id)
+        if (!event) return
+        openForm({ id: event.id, date: event.date, title: event.title })
       })
     })
 
@@ -541,10 +586,50 @@ export function initCalendar(container: HTMLElement): void {
       })
     })
 
-    container.querySelector<HTMLDialogElement>('[data-event-detail]')?.addEventListener('click', (clickEvent) => {
-      const dialog = clickEvent.currentTarget as HTMLDialogElement
-      if (clickEvent.target === dialog) closeDetail()
+    const form = container.querySelector<HTMLFormElement>('[data-event-form-fields]')
+    form?.addEventListener('submit', (submitEvent) => {
+      submitEvent.preventDefault()
+      const dateInput = container.querySelector<HTMLInputElement>('[data-event-form-date]')
+      const titleInput = container.querySelector<HTMLInputElement>('[data-event-form-title-input]')
+      if (!dateInput || !titleInput) return
+
+      const date = dateInput.value
+      const title = titleInput.value.trim()
+      if (!date || !title) return
+
+      if (editingId) {
+        events = events.map((event) =>
+          event.id === editingId ? { ...event, date, title } : event
+        )
+      } else {
+        events = [...events, { id: newEventId(), date, title }]
+      }
+      persist()
+      closeForm()
+      render()
     })
+
+    container.querySelector('[data-event-form-cancel]')?.addEventListener('click', () => {
+      closeForm()
+    })
+
+    container.querySelector('[data-event-form-delete]')?.addEventListener('click', () => {
+      if (!editingId) return
+      events = events.filter((event) => event.id !== editingId)
+      persist()
+      closeForm()
+      render()
+    })
+
+    const bindBackdropClose = (selector: string, onClose: () => void) => {
+      container.querySelector<HTMLDialogElement>(selector)?.addEventListener('click', (clickEvent) => {
+        const dialog = clickEvent.currentTarget as HTMLDialogElement
+        if (clickEvent.target === dialog) onClose()
+      })
+    }
+
+    bindBackdropClose('[data-event-detail]', closeDetail)
+    bindBackdropClose('[data-event-form]', closeForm)
   }
 
   render()
